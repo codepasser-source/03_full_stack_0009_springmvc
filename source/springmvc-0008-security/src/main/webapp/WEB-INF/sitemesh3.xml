@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sitemesh>
+
+	<!-- 1、 *.action负责页面跳转,需要嵌入default.jsp 2、 *.do 系统操作，无需嵌入default.jsp -->
+	<mapping path="/*" decorator="/WEB-INF/view/decorator/default.jsp" />
+
+	<!-- Exclude path from decoration. -->
+	<mapping path="/*.htm" exclue="true" />
+	<mapping path="/*.do" exclue="true" />
+	<mapping path="/WEB-INF/view/error/*.jsp" exclue="true" />
+</sitemesh>

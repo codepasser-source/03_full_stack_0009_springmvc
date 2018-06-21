@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="WebApp_ID" version="3.0">
+	<display-name>springmvc-config</display-name>
+
+	<welcome-file-list>
+		<welcome-file>index.html</welcome-file>
+		<welcome-file>index.htm</welcome-file>
+		<welcome-file>index.jsp</welcome-file>
+		<welcome-file>default.html</welcome-file>
+		<welcome-file>default.htm</welcome-file>
+		<welcome-file>default.jsp</welcome-file>
+	</welcome-file-list>
+
+	<!-- Session -->
+	<session-config>
+		<!-- 避免长时间的会话，实施像session劫持攻击等。安全和可用性总是会出现冲突。 -->
+		<session-timeout>30</session-timeout>
+		<!-- Servlet3.0规范中的<tracking-mode>允许你定义JSESSIONID是存储在cookie中还是URL参数中。如果会话ID存储在URL中，那么它可能会被无意的存储在多个地方，包括浏览器历史、代理服务器日志、引用日志和web日志等。暴露了会话ID使得网站被session劫持攻击的几率大增。然而，确保JSESSIONID被存储在cookie中非常容易： -->
+		<tracking-mode>COOKIE</tracking-mode>
+		<cookie-config>
+			<!-- cookie可以通过添加安全标志来创建，这确保了浏览器将不会在非SSL环境下传递cookie -->
+			<!-- <secure>true</secure> -->
+			<!-- 除了Servlet3.0的这种新的标准的方式，旧版本的Tomcat允许在server.xml中使用供应商特定的useHttpOnly属性来启用它。该属性在Tomcat5.5和6中默认是禁用的。在Tomcat7中，该属性默认是启用的。因此即使你在web.xml中将其设置为false，然后部署在tomcat7中，除非你修改了server.xml文件，否则你的JSESSIONID依然是HttpOnly的。 -->
+			<http-only>true</http-only>
+		</cookie-config>
+	</session-config>
+
+	<!-- 1、Spring Context Config file -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:/spring/web-root-context.xml</param-value>
+	</context-param>
+
+	<!-- 2、Spring ContextLoaderListener -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+
+	<!-- 3、Spring MVC DispatcherServlet -->
+	<servlet>
+		<servlet-name>application</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:/spring/web-mvc-context.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>application</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<!-- Spring Encoding Filter -->
+	<filter>
+		<filter-name>encodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>UTF-8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>encodingFilter</filter-name>
+		<servlet-name>application</servlet-name>
+	</filter-mapping>
+
+	<!-- Spring get|post|put|delete method support -->
+	<filter>
+		<filter-name>hiddenHttpMethodFilter</filter-name>
+		<filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>hiddenHttpMethodFilter</filter-name>
+		<servlet-name>application</servlet-name>
+	</filter-mapping>
+
+	<!-- Error page -->
+	<error-page>
+		<error-code>404</error-code>
+		<location>/WEB-INF/jsp/error/404.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/WEB-INF/jsp/error/500.jsp</location>
+	</error-page>
+
+</web-app>

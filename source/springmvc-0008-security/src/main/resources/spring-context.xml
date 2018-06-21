@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:util="http://www.springframework.org/schema/util" xmlns:p="http://www.springframework.org/schema/p"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.0.xsd 
+	http://www.springframework.org/schema/cache http://www.springframework.org/schema/cache/spring-cache-4.0.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd"
+	default-autowire="byName" default-lazy-init="false">
+
+	<!-- 设置自动组件加载扫描 -->
+	<context:component-scan base-package="com.mattdamon.common" />
+	<context:component-scan base-package="com.mattdamon.core" />
+	<context:component-scan base-package="com.mattdamon.dbcore" />
+	<context:component-scan base-package="com.mattdamon.logic" />
+
+	<!-- 加载jdbc配置文件 -->
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer"
+		lazy-init="true">
+		<property name="systemPropertiesModeName" value="SYSTEM_PROPERTIES_MODE_OVERRIDE" />
+		<property name="ignoreResourceNotFound" value="true" />
+		<property name="locations">
+			<list>
+				<value>classpath:jdbc.properties</value>
+				<value>classpath:memcached.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- AOP -->
+	<aop:aspectj-autoproxy />
+
+	<!-- AOP log interceptor -->
+	<bean id="logInterceptor" class="com.mattdamon.core.info.CoreLogInterceptor"></bean>
+
+	<aop:config proxy-target-class="true">
+		<aop:aspect id="servicelogAOP" ref="logInterceptor">
+			<aop:pointcut id="serviceLogPointCut"
+				expression="execution(public * com.mattdamon.logic.*.*.*(..))" />
+			<aop:around method="serviceInterceptor" pointcut-ref="serviceLogPointCut" />
+		</aop:aspect>
+	</aop:config>
+
+	<!-- 缓存配置 -->
+	<!-- 启用缓存注解功能 使用spring3的 -->
+	<cache:annotation-driven cache-manager="cacheManager" />
+
+	<!-- spring自己的换管理器，这里定义了两个缓存位置名称 ，既注解中的value -->
+	<bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
+		<property name="caches">
+			<set>
+				<bean
+					class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean"
+					p:name="default" />
+				<bean
+					class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean"
+					p:name="masterDataCache" />
+				<bean
+					class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean"
+					p:name="dictDataCache" />
+			</set>
+		</property>
+	</bean>
+
+	<!-- Exception 处理, 方式一 -->
+	<bean id="mdExceptionHandler" class="com.mattdamon.core.info.CoreExceptionResolver" />
+
+	<bean id="sockIOPool" class="com.whalin.MemCached.SockIOPool"
+		factory-method="getInstance" init-method="initialize" destroy-method="shutDown">
+		<constructor-arg>
+			<value>memCachedPool</value>
+		</constructor-arg>
+		<property name="servers">
+			<list>
+				<value>${memcache.server}</value>
+			</list>
+		</property>
+		<property name="initConn">
+			<value>${memcache.initConn}</value>
+		</property>
+		<property name="maxConn">
+			<value>${memcache.maxConn}</value>
+		</property>
+		<property name="maintSleep">
+			<value>${memcache.maintSleep}</value>
+		</property>
+		<property name="nagle">
+			<value>${memcache.nagle}</value>
+		</property>
+		<property name="socketTO">
+			<value>${memcache.socketTO}</value>
+		</property>
+	</bean>
+
+	<bean id="memcachedClient" class="com.whalin.MemCached.MemCachedClient">
+		<constructor-arg>
+			<value>memCachedPool</value>
+		</constructor-arg>
+	</bean>
+
+	<!-- import hibernate config -->
+	<import resource="spring-hibernate.xml" />
+</beans>

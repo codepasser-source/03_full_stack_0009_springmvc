@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd 
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd 
+	http://www.springframework.org/schema/mvc
+	http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	http://www.springframework.org/schema/util
+	http://www.springframework.org/schema/util/spring-util.xsd"
+	default-autowire="byName" default-lazy-init="false">
+
+	<!-- 对包中的所有类进行扫描，以完成Bean创建和自动依赖注入的功能 需要更改 -->
+	<context:component-scan base-package="com.matt.damon.springmvc.controller" />
+	<context:component-scan base-package="com.matt.damon.springmvc.render" />
+
+	<!-- 3.1 late -->
+	<!-- DispatcherServlet Context: defines this servlet's request-processing 
+		infrastructure -->
+	<mvc:annotation-driven>
+		<mvc:message-converters>
+			<bean class="org.springframework.http.converter.StringHttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/plain;charset=UTF-8</value>
+						<value>text/html;charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+			<bean
+				class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+				<property name="supportedMediaTypes">
+					<list>
+						<value>text/html;charset=UTF-8</value>
+						<value>application/json;charset=UTF-8</value>
+						<value>application/x-www-form-urlencoded; charset=UTF-8</value>
+					</list>
+				</property>
+			</bean>
+		</mvc:message-converters>
+	</mvc:annotation-driven>
+
+	<bean id="appProperty"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<array>
+				<value>classpath:/config/web.properties</value>
+			</array>
+		</property>
+	</bean>
+
+	<!-- WebFallbackView 冲突 静态文件需要独立工程运行，通过Nginx加载 -->
+	<!--对静态资源文件的访问,通过Nginx处理 -->
+	<mvc:resources mapping="/view/**" location="/view/" />
+	<mvc:resources mapping="/view-support/**" location="/view-support/" />
+
+	<!-- 支持上传文件 -->
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="maxUploadSize">
+			<value>10485760</value><!-- 文件上传最大为10M -->
+		</property>
+		<property name="maxInMemorySize" value="4096" />
+	</bean>
+
+	<!-- Exception 处理, 方式一 -->
+	<bean id="mdExceptionHandler" class="com.matt.damon.springmvc.exception.MDExceptionHandler" />
+
+	<!-- 拦截器 -->
+	<mvc:interceptors>
+		<!-- 多个拦截器,顺序执行 -->
+		<bean id="webContentInterceptor"
+			class="org.springframework.web.servlet.mvc.WebContentInterceptor">
+			<!-- 默认缓存5分钟 -->
+			<property name="cacheSeconds" value="300" />
+			<property name="useExpiresHeader" value="true" />
+			<!-- 是否使用HTTP1.0协议过期响应头：如果true则会在响应头添加：“Expires：”；需要配合cacheSeconds使用； -->
+			<property name="useCacheControlHeader" value="true" />
+			<!-- 是否使用HTTP 1.1协议的缓存控制响应头，如果true则会在响应头添加；需要配合cacheSeconds使用；该设置是防止Firefox缓存 -->
+			<property name="useCacheControlNoStore" value="true" />
+			<property name="cacheMappings">
+				<props>  <!--对于后台开头的url,默认不缓存 -->
+					<prop key="/admin/**">0</prop>
+				</props>
+			</property>
+		</bean>
+		<mvc:interceptor>
+			<!-- 如果不配置或/*,将拦截所有的Controller -->
+			<mvc:mapping path="/cache/*.do" />
+			<bean id="mdInterceptor" class="com.matt.damon.springmvc.interceptor.MDInterceptor">
+				<property name="mappingURL" value=".*/interceptor\.do" />
+			</bean>
+		</mvc:interceptor>
+	</mvc:interceptors>
+
+	<!-- View resolver -->
+	<!-- <bean id="viewResolver" class="org.springframework.web.servlet.view.InternalResourceViewResolver"> 
+		<property name="prefix"> <value>/view/</value> </property> <property name="suffix"> 
+		<value>.jsp</value> </property> </bean> -->
+
+
+</beans>

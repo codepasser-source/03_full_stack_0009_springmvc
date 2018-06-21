@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd 
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.0.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd 
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd"
+	default-autowire="byName" default-lazy-init="false">
+
+	<!-- JNDI方式 -->
+	<bean id="dataSource_jndi" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="${hibernate.jdbc.jndiName}" />
+		<property name="resourceRef" value="true" />
+	</bean>
+
+	<bean id="dataSource_jndi_write" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="${hibernate.jdbc.write.jndiName}" />
+		<property name="resourceRef" value="true" />
+	</bean>
+
+	<bean id="dataSource_jndi_read" class="org.springframework.jndi.JndiObjectFactoryBean">
+		<property name="jndiName" value="${hibernate.jdbc.read.jndiName}" />
+		<property name="resourceRef" value="true" />
+	</bean>
+
+	<!-- 读写分离 sessionFactory ： write session -->
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource_jndi_write" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+				<prop key="hibernate.hbm2ddl.auto">${hibernate.ddl_auto}</prop>
+				<prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop>
+				<!-- 是否开启二级缓存 -->
+				<prop key="hibernate.cache.use_second_level_cache">false</prop>
+				<!-- 配置二级缓存产品 -->
+				<!-- <prop key="hibernate.cache.provider_class">org.hibernate.cache.OSCacheProvider</prop> -->
+				<!-- 是否开启查询缓存 -->
+				<prop key="hibernate.cache.use_query_cache">false</prop>
+				<!-- 数据库批量查询数 -->
+				<prop key="hibernate.jdbc.fetch_size">50</prop>
+				<!-- 数据库批量更新数 -->
+				<prop key="hibernate.jdbc.batch_size">30</prop>
+			</props>
+		</property>
+		<!-- 注解方式配置 -->
+		<property name="packagesToScan">
+			<list>
+				<value>com.mattdamon.model</value>
+			</list>
+		</property>
+	</bean>
+	<!-- 读写分离 sessionFactoryRead ： read session -->
+	<bean id="sessionFactoryRead"
+		class="org.springframework.orm.hibernate4.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource_jndi_read" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+				<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+				<prop key="hibernate.format_sql">${hibernate.format_sql}</prop>
+				<prop key="hibernate.hbm2ddl.auto">${hibernate.ddl_auto}</prop>
+				<prop key="hibernate.temp.use_jdbc_metadata_defaults">false</prop>
+				<!-- 是否开启二级缓存 -->
+				<prop key="hibernate.cache.use_second_level_cache">false</prop>
+				<!-- 配置二级缓存产品 -->
+				<!-- <prop key="hibernate.cache.provider_class">org.hibernate.cache.OSCacheProvider</prop> -->
+				<!-- 是否开启查询缓存 -->
+				<prop key="hibernate.cache.use_query_cache">false</prop>
+				<!-- 数据库批量查询数 -->
+				<prop key="hibernate.jdbc.fetch_size">50</prop>
+				<!-- 数据库批量更新数 -->
+				<prop key="hibernate.jdbc.batch_size">30</prop>
+			</props>
+		</property>
+		<!-- 注解方式配置 -->
+		<property name="packagesToScan">
+			<list>
+				<value>com.mattdamon.model</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- 配置事物管理器，在*ServiceImpl里写@Transactional就可以启用事物管理 -->
+	<bean name="transactionManager"
+		class="org.springframework.orm.hibernate4.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+</beans>

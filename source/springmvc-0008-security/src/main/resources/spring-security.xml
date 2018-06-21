@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://www.springframework.org/schema/beans" xmlns:security="http://www.springframework.org/schema/security"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+	http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.2.xsd
+	http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-4.0.xsd"
+	default-autowire="byName" default-lazy-init="false">
+
+	<security:global-method-security
+		pre-post-annotations="enabled" />
+	<!-- 该路径下的资源不用过滤 -->
+	<security:http pattern="/js/**" security="none" />
+	<security:http use-expressions="true" auto-config="true">
+		<security:form-login />
+		<security:logout />
+		<!-- 实现免登陆验证 -->
+		<security:remember-me />
+		<security:session-management
+			invalid-session-url="/timeout.jsp">
+			<security:concurrency-control
+				max-sessions="10" error-if-maximum-exceeded="true" />
+		</security:session-management>
+		<!-- 定义SecurityFilter -->
+		<security:custom-filter ref="myFilter"
+			before="FILTER_SECURITY_INTERCEPTOR" />
+	</security:http>
+	<!-- 配置过滤器 -->
+	<bean id="myFilter" class="com.mattdamon.core.security.MySecurityFilter">
+
+		<!-- 用户拥有的权限 -->
+		<property name="authenticationManager" ref="myAuthenticationManager" />
+
+		<!-- 资源与权限对应关系 -->
+		<property name="securityMetadataSource" ref="mySecurityMetadataSource" />
+		<!-- 用户是否拥有所请求资源的权限 -->
+		<property name="accessDecisionManager" ref="myAccessDecisionManager" />
+	</bean>
+
+	<security:authentication-manager alias="myAuthenticationManager">
+		<security:authentication-provider
+			user-service-ref="myUserDetailServiceImpl" />
+	</security:authentication-manager>
+
+	<bean id="myUserDetailServiceImpl" class="com.mattdamon.core.security.MyUserDetailServiceImpl">
+	</bean>
+
+	<!-- 实现了UserDetailsService的Bean -->
+	<bean id="mySecurityMetadataSource" class="com.mattdamon.core.security.MySecurityMetadataSource">
+		<!-- <constructor-arg name="resourcesDao" ref="resourcesDao" /> -->
+	</bean>
+
+	<bean id="myAccessDecisionManager" class="com.mattdamon.core.security.MyAccessDecisionManager"></bean>
+
+</beans>
