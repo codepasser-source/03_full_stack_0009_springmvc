@@ -10,7 +10,7 @@
 		<project.install.phase>uat</project.install.phase>
 		<spring.version>4.0.2.RELEASE</spring.version>
 		<spring.security.version>3.2.6.RELEASE</spring.security.version>
-		<hibernate.version>4.3.4.Final</hibernate.version>
+		<hibernate.version>5.4.24.Final</hibernate.version>
 	</properties>
 
 	<groupId>com.mattdamon</groupId>
