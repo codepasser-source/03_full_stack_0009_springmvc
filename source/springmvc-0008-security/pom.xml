@@ -8,7 +8,7 @@
 		<project.build.context>/springmvc</project.build.context>
 		<project.build.encoding>UTF-8</project.build.encoding>
 		<project.install.phase>uat</project.install.phase>
-		<spring.version>4.0.2.RELEASE</spring.version>
+		<spring.version>5.3.19</spring.version>
 		<spring.security.version>3.2.6.RELEASE</spring.security.version>
 		<hibernate.version>4.3.4.Final</hibernate.version>
 	</properties>
