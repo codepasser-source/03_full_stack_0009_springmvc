@@ -9,7 +9,7 @@
 		<project.build.encoding>UTF-8</project.build.encoding>
 		<project.install.phase>uat</project.install.phase>
 		<spring.version>4.0.2.RELEASE</spring.version>
-		<spring.security.version>3.2.6.RELEASE</spring.security.version>
+		<spring.security.version>5.5.7</spring.security.version>
 		<hibernate.version>4.3.4.Final</hibernate.version>
 	</properties>
 
